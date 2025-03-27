@@ -146,18 +146,27 @@ def start():
         sys.exit(1)
 
     logger.info(f"Starting PopDesk webhook server on http://0.0.0.0:{PORT}")
-    print("\033[92m\nPopDesk Webhook Server is RUNNING!\033[0m")
-    print(f"\033[94mLocal URL:  http://localhost:{PORT}\033[0m")
-    print(f"\033[94mPublic URL: {public_url}\033[0m")
-    print("\033[93m\nSend POST requests to the Public URL with JSON data:\033[0m")
-    print("\033[93m  {\"title\": \"Your Title\", \"message\": \"Your Message\"}\033[0m")
-    print("\033[91mAuthorization header required: Bearer", WEBHOOK_AUTH_TOKEN, "\033[0m")
-    print("\033[96m\nTest it with this curl command:\033[0m")
-    print(f"\033[96m  curl -X POST {public_url} \\")
-    print(f"    -H \"Authorization: Bearer {WEBHOOK_AUTH_TOKEN}\" \\")
-    print("    -H \"Content-Type: application/json\" \\")
-    print("    -d '{\"title\": \"Test Notification\", \"message\": \"Hello from curl!\"}'\033[0m")
-    print("\033[93m\nPress Ctrl+C to exit...\033[0m")
+
+    print(f"""\033[92m
+PopDesk Webhook Server is RUNNING!
+\033[0m\033[94m
+Local URL:  http://localhost:{PORT}
+Public URL: {public_url}
+\033[0m\033[93m
+Send POST requests to the Public URL with JSON data:
+{{"title": "Your Title", "message": "Your Message"}}
+\033[0m\033[91m
+Authorization header required: Bearer {WEBHOOK_AUTH_TOKEN}
+\033[0m\033[96m
+Test it with this curl command:
+curl -X POST {public_url} \\
+    -H "Authorization: Bearer {WEBHOOK_AUTH_TOKEN}" \\
+    -H "Content-Type: application/json" \\
+    -d '{{"title": "Test Notification", "message": "Hello from curl!"}}'
+\033[0m\033[93m
+Press Ctrl+C to exit...
+\033[0m""")
+
 
     uvicorn.run(app, host="0.0.0.0", port=PORT, log_level="info")
 
