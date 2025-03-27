@@ -48,8 +48,8 @@ source venv/bin/activate
 ### 🔧 Update Your `.env` File
 
 - 🔐 `WEBHOOK_AUTH_TOKEN` → Set a secure token to protect your webhook  
+- 🔢 `WEBHOOK_PORT` → Optional, defaults to `8000`
 - 🌐 `NGROK_AUTH_TOKEN` → Your ngrok token (if using ngrok)  
-- 🔢 `PORT` → Optional, defaults to `8000`
 
 ---
 
