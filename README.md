@@ -17,57 +17,29 @@ A simple webhook server that triggers desktop notifications when it receives HTT
 ## Requirements
 
 - Python 3.6+
-- Dependencies listed in `requirements.txt`
 
 ## Setup
-
-### 1. Clone the repository
 
 ```bash
 git clone https://github.com/tsilva/popdesk.git
 cd popdesk
+chmod +x install.sh
+./install.sh
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-### 2. Create a virtual environment using venv
+The install script will:
+1. Create a virtual environment (or use an existing one)
+2. Install dependencies from requirements.txt
+3. Create a .env file from .env.example if it doesn't exist
 
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows, use: venv\Scripts\activate
-```
+Note: You need to manually activate the virtual environment after the script finishes.
 
-### 3. Install dependencies with uv
+After running the setup script, update your .env file with:
+- A secure random string for `AUTH_KEY` to authenticate webhook requests
+- Your ngrok auth token as `NGROK_AUTH_TOKEN` (if you plan to use ngrok)
 
-[uv](https://github.com/astral-sh/uv) is a fast Python package installer and resolver. To install it:
-
-```bash
-pip install uv
-```
-
-Then install the project dependencies:
-
-```bash
-uv pip install -r requirements.txt
-```
-
-Alternatively, you can use pip directly:
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Configure environment variables
-
-Create a `.env` file in the project root with the following content:
-
-```
-AUTH_KEY=your_secret_key_here
-NGROK_AUTH_TOKEN=your_ngrok_auth_token
-```
-
-Replace `your_secret_key_here` with a secure random string to authenticate webhook requests.
-Replace `your_ngrok_auth_token` with your ngrok auth token if you plan to use ngrok.
-
-### 5. Setting up ngrok (optional)
+### Setting up ngrok (optional)
 
 If you don't already have an ngrok account and authtoken:
 
