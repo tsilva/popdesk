@@ -37,38 +37,6 @@ def notify_windows(title: str, message: str):
     except subprocess.CalledProcessError as e:
         logger.error(f"PowerShell notification failed: {e}")
 
-# --- Validate environment variables ---
-def validate_env_vars():
-    placeholder_values = {
-        'NGROK_AUTH_TOKEN': ['your-ngrok-auth-token'],
-        'WEBHOOK_AUTH_TOKEN': ['your-webhook-auth-token']
-    }
-
-    errors = []
-
-    for var, placeholders in placeholder_values.items():
-        value = os.getenv(var)
-        if not value:
-            errors.append(f"Environment variable {var} is not set.")
-        elif value.lower() in [p.lower() for p in placeholders]:
-            errors.append(f"Environment variable {var} still contains a placeholder value '{value}'. Please update it with your actual credentials.")
-
-    port_str = os.getenv('PORT', '8000')
-    if not port_str.isdigit():
-         errors.append(f"Environment variable PORT ('{port_str}') is not a valid integer.")
-    elif not (1 <= int(port_str) <= 65535):
-         errors.append(f"Environment variable PORT ('{port_str}') is not within the valid range (1-65535).")
-
-    if errors:
-        print("\033[91m" + "Error: Environment configuration not complete!" + "\033[0m")
-        for error in errors:
-            print("\033[93m" + f" - {error}" + "\033[0m")
-        print("\033[93m" + "Please update your .env file with your actual values before running the application." + "\033[0m")
-        print("\033[93m" + "If you haven't created a .env file yet, run the install script or copy .env.example to .env first." + "\033[0m")
-        sys.exit(1)
-
-validate_env_vars()
-
 # --- Models ---
 class NotificationPayload(BaseModel):
     title: Optional[str] = "Webhook Notification"
@@ -82,7 +50,8 @@ app = FastAPI(
 )
 
 # --- Environment ---
-PORT = int(os.getenv('PORT', 8000))
+WEBHOOK_PORT = int(os.getenv('WEBHOOK_PORT', 8000))
+NGROK_DOMAIN = os.getenv('NGROK_DOMAIN')
 NGROK_AUTH_TOKEN = os.getenv('NGROK_AUTH_TOKEN')
 WEBHOOK_AUTH_TOKEN = os.getenv('WEBHOOK_AUTH_TOKEN')
 
@@ -135,8 +104,15 @@ async def webhook(payload: NotificationPayload, authorized: bool = Depends(verif
 def start():
     public_url = None
     try:
-        logger.info(f"Attempting to establish ngrok tunnel on port {PORT}...")
-        http_tunnel = ngrok.connect(PORT)
+        # Connect using the custom URL
+       # options = {"hostname": "pleasing-foal-yearly.ngrok-free.app"}
+        #ngrok.connect(PORT, {"url" : "pleasing-foal-yearly.ngrok-free.app"})#,,#, options=options)
+
+        logger.info(f"Attempting to establish ngrok tunnel on port {WEBHOOK_PORT}...")
+        http_tunnel = ngrok.connect(
+            addr=WEBHOOK_PORT,
+            domain=NGROK_DOMAIN
+        )
         public_url = http_tunnel.public_url
         logger.info(f"Ngrok tunnel established successfully at: {public_url}")
     except Exception as e:
@@ -145,12 +121,12 @@ def start():
         print("\033[93m  Reason:", e, "\033[0m")
         sys.exit(1)
 
-    logger.info(f"Starting PopDesk webhook server on http://0.0.0.0:{PORT}")
+    logger.info(f"Starting PopDesk webhook server on http://0.0.0.0:{WEBHOOK_PORT}")
 
     print(f"""\033[92m
 PopDesk Webhook Server is RUNNING!
 \033[0m\033[94m
-Local URL:  http://localhost:{PORT}
+Local URL:  http://localhost:{WEBHOOK_PORT}
 Public URL: {public_url}
 \033[0m\033[93m
 Send POST requests to the Public URL with JSON data:
@@ -168,7 +144,7 @@ Press Ctrl+C to exit...
 \033[0m""")
 
 
-    uvicorn.run(app, host="0.0.0.0", port=PORT, log_level="info")
+    uvicorn.run(app, host="0.0.0.0", port=WEBHOOK_PORT, log_level="info")
 
 # --- Entry Point ---
 if __name__ == '__main__':
