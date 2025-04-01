@@ -31,8 +31,7 @@
 ```bash
 git clone https://github.com/tsilva/popdesk.git
 cd popdesk
-chmod +x install.sh run.sh
-./install.sh
+curl -L https://gist.githubusercontent.com/tsilva/258374c1ba2296d8ba22fffbf640f183/raw/venv-install.sh -o install.sh && chmod +x install.sh && ./install.sh
 ```
 
 🛠️ The install script will:
@@ -41,7 +40,7 @@ chmod +x install.sh run.sh
 3. 📝 Create a `.env` file from `.env.example` (if missing)
 
 ```bash
-./run.sh
+curl -L https://gist.githubusercontent.com/tsilva/8588cb367242e3db8f1b33c42e4e5e06/raw/venv-run.sh -o run.sh && chmod +x run.sh && ./run.sh
 ```
 
 ---

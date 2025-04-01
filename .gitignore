@@ -175,5 +175,5 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-install.sh
-run.sh
+./install.sh
+./run.sh
