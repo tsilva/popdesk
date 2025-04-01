@@ -31,9 +31,8 @@
 ```bash
 git clone https://github.com/tsilva/popdesk.git
 cd popdesk
-chmod +x install.sh
+chmod +x install.sh run.sh
 ./install.sh
-source venv/bin/activate
 ```
 
 🛠️ The install script will:
@@ -41,7 +40,9 @@ source venv/bin/activate
 2. 📦 Install dependencies from `requirements.txt`  
 3. 📝 Create a `.env` file from `.env.example` (if missing)
 
-⚠️ **Note:** Manually activate the virtual environment after install.
+```bash
+./run.sh
+```
 
 ---
 
