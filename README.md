@@ -1,7 +1,7 @@
 # 🖥️ popdesk
 
 <p align="center">
-  <img src="logo.png" alt="PopDesk Logo" width="400"/>
+  <img src="logo.png" alt="Logo" width="400"/>
 </p>
 
 🚀 A simple webhook server that triggers **desktop notifications** when it receives HTTP requests. This server uses **ngrok** to expose the webhook endpoint to the internet, making it accessible from anywhere.
