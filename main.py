@@ -5,10 +5,9 @@ import os
 import sys
 import logging
 import subprocess
-from typing import Optional
 
 import uvicorn
-from fastapi import FastAPI, Request, Depends, HTTPException, status
+from fastapi import FastAPI, Request, Depends, HTTPException
 from pydantic import BaseModel
 import pyngrok.ngrok as ngrok
 
@@ -50,17 +49,17 @@ app = FastAPI(
 
 # --- Pydantic Model ---
 class NotificationPayload(BaseModel):
-    title: Optional[str] = "Webhook Notification"
-    message: Optional[str] = "You received a webhook notification!"
+    title: str = "Webhook Notification"
+    message: str = "You received a webhook notification!"
 
 # --- Auth Middleware ---
 async def verify_auth_header(request: Request):
-    auth = request.headers.get('Authorization')
-    if not auth or not auth.startswith("Bearer ") or auth.split(" ")[1] != WEBHOOK_AUTH_TOKEN:
-        logger.warning(f"Unauthorized access from {request.client.host}")
+    auth_header = request.headers.get('Authorization', '')
+    if not auth_header.startswith("Bearer ") or auth_header[7:] != WEBHOOK_AUTH_TOKEN:
+        logger.warning(f"Unauthorized: {request.client.host}")
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authorization credentials",
+            status_code=401,
+            detail="Invalid authorization",
             headers={"WWW-Authenticate": "Bearer"},
         )
     return True
@@ -72,13 +71,9 @@ async def health_check():
 
 @app.post("/", status_code=200)
 async def webhook(payload: NotificationPayload, authorized: bool = Depends(verify_auth_header)):
-    try:
-        notify_windows(title=payload.title, message=payload.message)
-        logger.info(f"Notification displayed: '{payload.title}'")
-        return {"status": "success", "message": "Notification sent"}
-    except Exception as e:
-        logger.exception("Error displaying notification")
-        raise HTTPException(status_code=500, detail=f"Notification failed: {str(e)}")
+    notify_windows(title=payload.title, message=payload.message)
+    logger.info(f"Notification: '{payload.title}'")
+    return {"status": "success"}
 
 # --- Start Server Function ---
 def start():
