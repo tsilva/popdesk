@@ -1,122 +1,137 @@
-# 🖥️ popdesk
+<div align="center">
+  <img src="logo.png" alt="popdesk" width="200"/>
 
-<p align="center">
-  <img src="logo.png" alt="Logo" width="400"/>
-</p>
+  # popdesk
 
-🚀 A simple webhook server that triggers **desktop notifications** when it receives HTTP requests. This server uses **ngrok** to expose the webhook endpoint to the internet, making it accessible from anywhere.
+  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+  [![Python 3.6+](https://img.shields.io/badge/Python-3.6+-3776AB.svg)](https://www.python.org/)
+  [![FastAPI](https://img.shields.io/badge/FastAPI-0.68+-009688.svg)](https://fastapi.tiangolo.com/)
 
----
+  **🔔 Trigger Windows desktop notifications from anywhere via webhooks 🌐**
 
-## ✨ Features
-
-- 📬 Receive webhook notifications via HTTP POST requests  
-- 🔔 Display desktop notifications with customizable **title** and **message**  
-- 🌐 Expose the webhook server to the internet using **ngrok**  
-- ❤️ Simple health check endpoint via GET requests  
-- 🔐 Secure endpoints with **authorization headers**  
-- ⚡ Powered by **FastAPI** for performance & built-in docs  
+  [API Docs](#-api-documentation) · [Setup](#-setup) · [Usage](#-usage)
+</div>
 
 ---
 
-## 📦 Requirements
+## Overview
 
-- 🐍 Python 3.6+  
-- 🪟 Windows OS (notifications currently Windows-specific)
+PopDesk is a lightweight webhook server that displays Windows toast notifications when it receives HTTP requests. It uses ngrok to expose your local server to the internet, letting you trigger notifications from CI/CD pipelines, monitoring systems, or any service that can send HTTP requests.
 
----
+## Features
 
-## ⚙️ Setup
+- **Remote notifications** — Trigger Windows desktop alerts from anywhere via HTTP POST
+- **Public URL via ngrok** — Automatic tunnel creation exposes your webhook to the internet
+- **Bearer token auth** — Secure your endpoint with simple token-based authentication
+- **FastAPI-powered** — Built-in OpenAPI docs, request validation, and async support
+- **Health checks** — GET endpoint for monitoring server status
+
+## Quick Start
 
 ```bash
+# Clone and install
 git clone https://github.com/tsilva/popdesk.git
 cd popdesk
+python -m venv venv && source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+
+# Configure
+cp .env.example .env
+# Edit .env with your tokens
+
+# Run
+python main.py
+```
+
+## Setup
+
+### Requirements
+
+- Python 3.6+
+- Windows OS (uses native Windows toast notifications)
+- [ngrok account](https://ngrok.com) (free tier works)
+
+### Environment Variables
+
+Create a `.env` file with the following:
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `WEBHOOK_AUTH_TOKEN` | Yes | Bearer token for webhook authentication |
+| `NGROK_AUTH_TOKEN` | Yes | Your ngrok authentication token |
+| `WEBHOOK_PORT` | No | Server port (default: `8000`) |
+| `NGROK_DOMAIN` | No | Custom ngrok domain (if you have one) |
+
+### Installation Options
+
+**Option 1: Manual setup**
+```bash
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+**Option 2: Using install script**
+```bash
 curl -L https://gist.githubusercontent.com/tsilva/258374c1ba2296d8ba22fffbf640f183/raw/venv-install.sh -o install.sh && chmod +x install.sh && ./install.sh
 ```
 
-🛠️ The install script will:
-1. 🧪 Create (or use) a Python virtual environment  
-2. 📦 Install dependencies from `requirements.txt`  
-3. 📝 Create a `.env` file from `.env.example` (if missing)
+## Usage
 
-```bash
-curl -L https://gist.githubusercontent.com/tsilva/8588cb367242e3db8f1b33c42e4e5e06/raw/venv-run.sh -o run.sh && chmod +x run.sh && ./run.sh
-```
-
----
-
-### 🔧 Update Your `.env` File
-
-- 🔐 `WEBHOOK_AUTH_TOKEN` → Set a secure token to protect your webhook  
-- 🔢 `WEBHOOK_PORT` → Optional, defaults to `8000`
-- 🌐 `NGROK_AUTH_TOKEN` → Your ngrok token (if using ngrok)  
-
----
-
-### 🌍 Setting Up ngrok (Optional)
-
-1. 📝 [Sign up](https://ngrok.com) for an ngrok account  
-2. 🔑 Copy your authtoken from your ngrok dashboard  
-3. ⚙️ Add it to the `.env` file under `NGROK_AUTH_TOKEN`
-
----
-
-## 🚀 Usage
-
-### ▶️ Start the Server
+### Start the Server
 
 ```bash
 python main.py
 ```
 
 The server will:
-- 🛡️ Start on `localhost:8000` or your chosen port  
-- 🌐 Create an **ngrok tunnel** and show the public URL  
-- ⏳ Run until you press `Ctrl + C` to stop
+- Start on the configured port (default 8000)
+- Establish an ngrok tunnel and display the public URL
+- Print a test curl command with your auth token
 
----
-
-### 📣 Sending Notifications
-
-You can trigger a notification via a POST request. Example using `curl`:
+### Send a Notification
 
 ```bash
-curl -X POST \
+curl -X POST <your-ngrok-url> \
+  -H "Authorization: Bearer <your-token>" \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer your_webhook_auth_token" \
-  -d '{"title": "Test Notification", "message": "Hello from the webhook!"}' \
-  <your-ngrok-url>
+  -d '{"title": "Hello!", "message": "This is a test notification"}'
 ```
 
----
+### API Endpoints
 
-### 📚 API Documentation
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/` | No | Health check endpoint |
+| `POST` | `/` | Yes | Trigger a notification |
 
-Thanks to FastAPI, you get automatic interactive docs:
+### Request Payload
 
-- 📄 Swagger UI: `http://localhost:{PORT}/docs`  
-- 📘 ReDoc: `http://localhost:{PORT}/redoc`
+```json
+{
+  "title": "Notification Title",
+  "message": "Notification message body"
+}
+```
 
----
+Both fields have defaults, so an empty `{}` payload will still trigger a notification.
 
-## 💡 How it Works
+## API Documentation
 
-1. 🌐 Server listens for `POST` requests with JSON payload  
-2. 🔐 Validates requests with the `Authorization` header  
-3. 🪟 Triggers a **Windows notification** using PowerShell  
-4. 🧭 Ngrok tunnels your local server for external access  
+FastAPI provides automatic interactive documentation:
 
----
+- **Swagger UI**: `http://localhost:8000/docs`
+- **ReDoc**: `http://localhost:8000/redoc`
 
-## 🧰 Troubleshooting
+## Troubleshooting
 
-- ❌ No notification? → Ensure you're on **Windows** and check notification settings  
-- 🌐 ngrok issues? → Check your internet & token setup  
-- 🛑 401 Unauthorized? → Validate your `Authorization` header  
-- 🐛 Still stuck? → Watch console logs & check `/docs` or `/redoc`  
+| Issue | Solution |
+|-------|----------|
+| No notification appears | Ensure you're running on Windows and check notification settings |
+| 401 Unauthorized | Verify your `Authorization: Bearer <token>` header matches `.env` |
+| ngrok tunnel fails | Check your internet connection and `NGROK_AUTH_TOKEN` |
+| Port already in use | Change `WEBHOOK_PORT` in `.env` or stop the conflicting process |
 
----
+## License
 
-## 📄 License
-
-📝 [MIT License](LICENSE)
+[MIT](LICENSE)
