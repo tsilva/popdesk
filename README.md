@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="logo.png" alt="popdesk" width="200"/>
+  <img src="logo.png" alt="popdesk" width="512"/>
 
   # popdesk
 
