@@ -1,25 +1,28 @@
+import logging
+import os
+import subprocess
+import sys
+
+import pyngrok.ngrok as ngrok
+import uvicorn
 from dotenv import load_dotenv
+from fastapi import Depends, FastAPI, HTTPException, Request
+from pydantic import BaseModel
+
 load_dotenv(override=True)
 
-import os
-import sys
-import logging
-import subprocess
-
-import uvicorn
-from fastapi import FastAPI, Request, Depends, HTTPException
-from pydantic import BaseModel
-import pyngrok.ngrok as ngrok
-
 # --- Logging Setup ---
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("popdesk")
 
 # --- Environment Variables ---
-WEBHOOK_PORT = int(os.getenv('WEBHOOK_PORT', 8000))
-NGROK_DOMAIN = os.getenv('NGROK_DOMAIN')
-NGROK_AUTH_TOKEN = os.getenv('NGROK_AUTH_TOKEN'); assert NGROK_AUTH_TOKEN, "WEBHOOK_PORT must be set in .env file"
-WEBHOOK_AUTH_TOKEN = os.getenv('WEBHOOK_AUTH_TOKEN'); assert WEBHOOK_AUTH_TOKEN, "WEBHOOK_AUTH_TOKEN must be set in .env file"
+WEBHOOK_PORT = int(os.getenv("WEBHOOK_PORT", 8000))
+NGROK_DOMAIN = os.getenv("NGROK_DOMAIN")
+NGROK_AUTH_TOKEN = os.getenv("NGROK_AUTH_TOKEN")
+assert NGROK_AUTH_TOKEN, "NGROK_AUTH_TOKEN must be set in .env file"
+WEBHOOK_AUTH_TOKEN = os.getenv("WEBHOOK_AUTH_TOKEN")
+assert WEBHOOK_AUTH_TOKEN, "WEBHOOK_AUTH_TOKEN must be set in .env file"
+
 
 # --- Notification Function ---
 def notify_windows(title: str, message: str):
@@ -40,21 +43,24 @@ def notify_windows(title: str, message: str):
     except subprocess.CalledProcessError as e:
         logger.error(f"PowerShell notification failed: {e}")
 
+
 # --- FastAPI App Setup ---
 app = FastAPI(
     title="PopDesk",
     description="A webhook server that triggers desktop notifications",
-    version="1.0.0"
+    version="1.0.0",
 )
+
 
 # --- Pydantic Model ---
 class NotificationPayload(BaseModel):
     title: str = "Webhook Notification"
     message: str = "You received a webhook notification!"
 
+
 # --- Auth Middleware ---
 async def verify_auth_header(request: Request):
-    auth_header = request.headers.get('Authorization', '')
+    auth_header = request.headers.get("Authorization", "")
     if not auth_header.startswith("Bearer ") or auth_header[7:] != WEBHOOK_AUTH_TOKEN:
         logger.warning(f"Unauthorized: {request.client.host}")
         raise HTTPException(
@@ -64,16 +70,19 @@ async def verify_auth_header(request: Request):
         )
     return True
 
+
 # --- API Routes ---
 @app.get("/", status_code=200)
 async def health_check():
     return {"status": "healthy", "message": "PopDesk webhook server is running"}
+
 
 @app.post("/", status_code=200)
 async def webhook(payload: NotificationPayload, authorized: bool = Depends(verify_auth_header)):
     notify_windows(title=payload.title, message=payload.message)
     logger.info(f"Notification: '{payload.title}'")
     return {"status": "success"}
+
 
 # --- Start Server Function ---
 def start():
@@ -118,6 +127,7 @@ curl -X POST {public_url} \\
 
     uvicorn.run(app, host="0.0.0.0", port=WEBHOOK_PORT, log_level="info")
 
+
 # --- Main Entry Point ---
 if __name__ == "__main__":
     try:
@@ -134,7 +144,7 @@ if __name__ == "__main__":
             logger.error(f"Ngrok cleanup error: {e}")
         print("\n\033[92mServer shutdown complete.\033[0m")
         sys.exit(0)
-    except Exception as e:
+    except Exception:
         logger.exception("Fatal error occurred")
         try:
             ngrok.kill()
