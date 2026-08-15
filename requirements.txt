@@ -1,5 +1,5 @@
 -c constraints.txt
-fastapi>=0.68.0
+fastapi>=0.141.1
 uvicorn>=0.15.0
 pyngrok>=5.1.0
 python-dotenv>=1.2.2

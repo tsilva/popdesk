@@ -13,7 +13,7 @@ Run it on a Windows desktop, let pyngrok publish the local server, then send a `
 ```bash
 git clone https://github.com/tsilva/popdesk.git
 cd popdesk
-uv sync
+uv sync --config-file uv.toml --frozen --all-groups
 cp .env.example .env
 uv run python main.py
 ```
@@ -23,8 +23,11 @@ Edit `.env` before starting the server. When popdesk starts, it prints the local
 ## Commands
 
 ```bash
-uv sync                  # install the locked Python environment
-uv run python main.py    # start popdesk and open the ngrok tunnel
+uv sync --config-file uv.toml --frozen --all-groups  # install the locked environment
+uv audit --frozen                                      # audit the dependency graph
+uv run ruff check main.py tests                        # lint source and tests
+uv run pytest -q                                        # run security/regression tests
+uv run python main.py                                   # start popdesk and open the ngrok tunnel
 python -m venv venv      # optional manual environment path
 pip install -r requirements.txt
 python main.py
