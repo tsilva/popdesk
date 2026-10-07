@@ -1,8 +1,10 @@
-<div align="center">
+<p align="center">
   <img src="./logo.png" alt="popdesk" width="420" />
-
-  **🔔 Trigger Windows desktop notifications from anywhere via webhooks 🌐**
-</div>
+  <br />
+  <!-- repo-tagline:start -->
+  <strong>🔔 Trigger Windows desktop notifications from anywhere via webhooks 🌐</strong>
+  <!-- repo-tagline:end -->
+</p>
 
 popdesk is a small FastAPI webhook server that turns authenticated HTTP requests into native Windows toast notifications.
 
