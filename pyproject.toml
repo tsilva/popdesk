@@ -34,3 +34,13 @@ select = ["E", "F", "I"]
 
 [tool.ruff.lint.per-file-ignores]
 "main.py" = ["E501"]
+
+# Constraints are project metadata; uv does not read them from uv.toml.
+[tool.uv]
+constraint-dependencies = [
+  "fastapi>=0.141.1",
+  "starlette>=1.3.1",
+  "pytest>=9.0.3",
+  "mistralai!=2.4.6",
+  "guardrails-ai!=0.10.1",
+]
