@@ -23,7 +23,7 @@ uv run python main.py
 Edit `.env` before starting the server. When popdesk starts, it prints the local URL, public ngrok URL, and a ready-to-run test `curl` command.
 
 Dependency resolution keeps the seven-day release-age setting in `uv.toml` and
-the security constraints in `[tool.uv]` in `pyproject.toml`. Keep both files with
+the security constraints in `[tool.uv]` in `pyproject.toml`. The lock includes patched OpenTelemetry tracestate parsing. Keep both files with
 the committed `uv.lock` when updating dependencies.
 
 ## Commands

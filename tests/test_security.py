@@ -1,4 +1,6 @@
 import os
+import subprocess
+import sys
 from importlib.metadata import version
 from unittest.mock import patch
 
@@ -78,3 +80,27 @@ def test_webhook_rejects_bad_auth_and_preserves_valid_notification_flow():
     assert response.status_code == 200
     assert response.json() == {"status": "success"}
     notify.assert_called_once_with(title=payload["title"], message=payload["message"])
+
+
+def test_oversized_tracestate_finishes_within_a_bounded_worker():
+    # The vulnerable parser spends seconds backtracking over this header.
+    worker = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "from opentelemetry.trace import TraceState; "
+            "assert dict(TraceState.from_header([' ' * 100000 + 'vendor=value'])) "
+            "== {'vendor': 'value'}",
+        ],
+        capture_output=True,
+        timeout=2,
+        check=False,
+    )
+    assert worker.returncode == 0
+
+
+def test_valid_tracestate_still_preserves_vendor_entries():
+    from opentelemetry.trace import TraceState
+
+    state = TraceState.from_header(["vendor=value,another=entry"])
+    assert dict(state) == {"vendor": "value", "another": "entry"}

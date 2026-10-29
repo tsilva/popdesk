@@ -43,4 +43,5 @@ constraint-dependencies = [
   "pytest>=9.0.3",
   "mistralai!=2.4.6",
   "guardrails-ai!=0.10.1",
+  "opentelemetry-api>=1.45.1",
 ]
