@@ -34,9 +34,6 @@ uv audit --frozen                                      # audit the dependency gr
 uv run ruff check main.py tests                        # lint source and tests
 uv run pytest -q                                        # run security/regression tests
 uv run python main.py                                   # start popdesk and open the ngrok tunnel
-python -m venv venv      # optional manual environment path
-pip install -r requirements.txt
-python main.py
 ```
 
 ## Usage

@@ -34,14 +34,11 @@ Required variables in `.env`:
 
 ### Setup
 ```bash
-# Create virtual environment and install dependencies
-curl -L https://gist.githubusercontent.com/tsilva/258374c1ba2296d8ba22fffbf640f183/raw/venv-install.sh -o install.sh && chmod +x install.sh && ./install.sh
-
-# Or manually:
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
+uv sync --config-file uv.toml --frozen --all-groups
 ```
+
+Use the committed `uv.lock` for the reproducible environment. Release-age settings
+live in `uv.toml`; security constraints are project metadata in `pyproject.toml`.
 
 ### Run Server
 ```bash
