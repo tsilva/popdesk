@@ -24,9 +24,9 @@ The entire application logic is contained in `main.py` with the following key co
 5. Response returned with success status
 
 ### Environment Configuration
-Required variables in `.env`:
+Required variables in the environment or `.env`:
 - `WEBHOOK_AUTH_TOKEN`: Bearer token for webhook authentication (required)
-- `NGROK_AUTH_TOKEN`: Ngrok authentication token (required)
+- `NGROK_AUTH_TOKEN`: Required only when `python main.py` starts the ngrok tunnel
 - `WEBHOOK_PORT`: Server port (default: 8000)
 - `NGROK_DOMAIN`: Optional custom ngrok domain
 
@@ -75,7 +75,9 @@ This application is **Windows-only** because:
 - Both GET (health check) and POST (webhook) routes are at the root path `/`
 - Ngrok tunnel is automatically cleaned up on KeyboardInterrupt or exceptions
 - Quote characters in notification title/message are escaped to prevent PowerShell injection
-- The application uses `load_dotenv(override=True)` to ensure `.env` takes precedence
+- Explicit environment values take precedence over optional `.env` defaults.
+- Startup output must never print credential values; curl examples use placeholders.
+- An externally managed tunnel can target `uvicorn main:app --host 127.0.0.1`.
 
 ## README Maintenance
 

@@ -20,7 +20,11 @@ cp .env.example .env
 uv run python main.py
 ```
 
-Edit `.env` before starting the server. When popdesk starts, it prints the local URL, public ngrok URL, and a ready-to-run test `curl` command.
+Set the environment variables or edit `.env` before starting the server. Explicit environment values take precedence. Startup prints the local URL, public ngrok URL, and a test `curl` example with a token placeholder; replace the placeholder privately before use.
+
+If a separate process manages the tunnel, point it at the loopback server and
+start PopDesk with `uv run uvicorn main:app --host 127.0.0.1 --port 8000`.
+Set `WEBHOOK_AUTH_TOKEN` for the server. The separate tunnel owns its login.
 
 Dependency resolution keeps the seven-day release-age setting in `uv.toml` and
 the security constraints in `[tool.uv]` in `pyproject.toml`. The lock includes patched OpenTelemetry tracestate parsing. Keep both files with
@@ -60,8 +64,9 @@ The `POST /` payload accepts `title` and `message`. Both fields have defaults, s
 
 - Requires Python 3.10 or newer when using the `pyproject.toml`/`uv.lock` workflow.
 - Requires Windows because notifications are sent through PowerShell and `Windows.UI.Notifications`.
-- Requires `WEBHOOK_AUTH_TOKEN` and `NGROK_AUTH_TOKEN` in `.env`.
-- Optional `.env` values are `WEBHOOK_PORT` and `NGROK_DOMAIN`.
+- Requires `WEBHOOK_AUTH_TOKEN` in the environment or `.env`.
+- `python main.py` also requires `NGROK_AUTH_TOKEN` for its built-in tunnel.
+- Optional settings are `WEBHOOK_PORT` and `NGROK_DOMAIN`.
 - FastAPI docs are available locally at `/docs` and `/redoc` while the server is running.
 - popdesk does not persist webhook payloads or notification history.
 

@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, Request
 from pydantic import BaseModel
 
-load_dotenv(override=True)
+load_dotenv(override=False)
 
 # --- Logging Setup ---
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -19,9 +19,8 @@ logger = logging.getLogger("popdesk")
 WEBHOOK_PORT = int(os.getenv("WEBHOOK_PORT", 8000))
 NGROK_DOMAIN = os.getenv("NGROK_DOMAIN")
 NGROK_AUTH_TOKEN = os.getenv("NGROK_AUTH_TOKEN")
-assert NGROK_AUTH_TOKEN, "NGROK_AUTH_TOKEN must be set in .env file"
 WEBHOOK_AUTH_TOKEN = os.getenv("WEBHOOK_AUTH_TOKEN")
-assert WEBHOOK_AUTH_TOKEN, "WEBHOOK_AUTH_TOKEN must be set in .env file"
+assert WEBHOOK_AUTH_TOKEN, "WEBHOOK_AUTH_TOKEN must be set in the environment or .env file"
 
 
 # --- Notification Function ---
@@ -86,25 +85,16 @@ async def webhook(payload: NotificationPayload, authorized: bool = Depends(verif
 
 # --- Start Server Function ---
 def start():
-    public_url = "Unavailable"
-
-    # Set up ngrok
-    if NGROK_AUTH_TOKEN:
-        try:
-            ngrok.set_auth_token(NGROK_AUTH_TOKEN)
-            logger.info("Ngrok auth token applied.")
-        except Exception as e:
-            logger.error(f"Ngrok token error: {e}")
-    else:
-        logger.warning("NGROK_AUTH_TOKEN not set. Using unauthenticated tunnel.")
+    if not NGROK_AUTH_TOKEN:
+        raise SystemExit("NGROK_AUTH_TOKEN is required to launch the ngrok tunnel.")
 
     try:
+        ngrok.set_auth_token(NGROK_AUTH_TOKEN)
         tunnel = ngrok.connect(addr=WEBHOOK_PORT, domain=NGROK_DOMAIN)
-        public_url = tunnel.public_url
-        logger.info(f"Ngrok tunnel active at {public_url}")
-    except Exception as e:
-        logger.error(f"Failed to start ngrok tunnel: {e}")
-        sys.exit(1)
+    except Exception:
+        raise SystemExit("Failed to configure or start the ngrok tunnel.") from None
+    public_url = tunnel.public_url
+    logger.info("Ngrok tunnel active at %s", public_url)
 
     # Startup info
     print(f"""\033[92m
@@ -116,11 +106,11 @@ Public URL: {public_url}
 Send POST requests with:
 {{"title": "Your Title", "message": "Your Message"}}
 \033[91m
-Authorization required: Bearer {WEBHOOK_AUTH_TOKEN}
+Authorization required: Bearer <your-webhook-token>
 \033[96m
 Test with:
 curl -X POST {public_url} \\
-    -H "Authorization: Bearer {WEBHOOK_AUTH_TOKEN}" \\
+    -H "Authorization: Bearer <your-webhook-token>" \\
     -H "Content-Type: application/json" \\
     -d '{{"title": "Test", "message": "Hello from curl!"}}'
 \033[0m""")
