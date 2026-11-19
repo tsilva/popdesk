@@ -1,6 +1,7 @@
 """Exercise configuration and startup with synthetic credentials and no services."""
 
 import importlib.util
+import json
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -66,6 +67,33 @@ def test_external_tunnel_uses_only_webhook_authentication(load_app, monkeypatch)
     assert notices == [{"title": "fixture", "message": "synthetic"}]
     with pytest.raises(SystemExit, match="NGROK_AUTH_TOKEN is required"):
         application.start()
+
+
+def test_notification_content_reaches_powershell_only_as_input(load_app, monkeypatch):
+    application = load_app("WEBHOOK_AUTH_TOKEN=synthetic-webhook-canary\n")
+    calls = []
+
+    def record(command, **options):
+        calls.append((command, options))
+
+    monkeypatch.setattr(application.subprocess, "run", record)
+    messages = [
+        {"title": 'Notificação "pronta"', "message": "Line one\nLine two 💬"},
+        {"title": "Price update", "message": "Total: $25"},
+    ]
+    with TestClient(application.app) as client:
+        for message in messages:
+            response = client.post("/", json=message,
+                                   headers={"Authorization": "Bearer synthetic-webhook-canary"})
+            assert response.json() == {"status": "success"}
+
+    assert len(calls) == 2
+    assert calls[0][0] == calls[1][0]
+    for (command, options), message in zip(calls, messages):
+        assert command[:4] == ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command"]
+        assert "[Console]::In.ReadToEnd() | ConvertFrom-Json" in command[4]
+        assert json.loads(options["input"]) == message
+        assert options["capture_output"] and options["check"]
 
 
 def test_ngrok_configuration_failure_stops_without_provider_output(load_app, monkeypatch):

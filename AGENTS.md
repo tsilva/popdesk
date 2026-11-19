@@ -74,7 +74,7 @@ This application is **Windows-only** because:
 - The authorization check happens via FastAPI dependency injection in the POST endpoint
 - Both GET (health check) and POST (webhook) routes are at the root path `/`
 - Ngrok tunnel is automatically cleaned up on KeyboardInterrupt or exceptions
-- Quote characters in notification title/message are escaped to prevent PowerShell injection
+- Pass notification text as JSON on stdin to a fixed PowerShell command.
 - Explicit environment values take precedence over optional `.env` defaults.
 - Startup output must never print credential values; curl examples use placeholders.
 - An externally managed tunnel can target `uvicorn main:app --host 127.0.0.1`.

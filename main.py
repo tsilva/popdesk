@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import subprocess
@@ -26,21 +27,27 @@ assert WEBHOOK_AUTH_TOKEN, "WEBHOOK_AUTH_TOKEN must be set in the environment or
 # --- Notification Function ---
 def notify_windows(title: str, message: str):
     try:
-        title, message = title.replace('"', '`"'), message.replace('"', '`"')
-        powershell_command = f'''
+        powershell_command = """
+        [Console]::InputEncoding = [Text.Encoding]::UTF8;
+        $payload = [Console]::In.ReadToEnd() | ConvertFrom-Json;
         [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] > $null;
         $template = [Windows.UI.Notifications.ToastNotificationManager]::GetTemplateContent([Windows.UI.Notifications.ToastTemplateType]::ToastText02);
         $textNodes = $template.GetElementsByTagName("text");
-        $textNodes.Item(0).AppendChild($template.CreateTextNode("{title}")) > $null;
-        $textNodes.Item(1).AppendChild($template.CreateTextNode("{message}")) > $null;
+        $textNodes.Item(0).AppendChild($template.CreateTextNode([string]$payload.title)) > $null;
+        $textNodes.Item(1).AppendChild($template.CreateTextNode([string]$payload.message)) > $null;
         $toast = [Windows.UI.Notifications.ToastNotification]::new($template);
         $notifier = [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier("PopDesk");
         $notifier.Show($toast);
-        '''
-        subprocess.run(["powershell.exe", "-Command", powershell_command], check=True)
+        """
+        subprocess.run(
+            ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", powershell_command],
+            input=json.dumps({"title": title, "message": message}).encode("ascii"),
+            capture_output=True,
+            check=True,
+        )
         logger.info("Notification sent successfully.")
-    except subprocess.CalledProcessError as e:
-        logger.error(f"PowerShell notification failed: {e}")
+    except subprocess.CalledProcessError:
+        logger.error("PowerShell notification failed.")
 
 
 # --- FastAPI App Setup ---
